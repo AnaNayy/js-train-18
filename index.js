@@ -10,11 +10,20 @@ function checkData(data) {
   // Інакше створюємо помилку,в якості тексту помилки ми використовуємо
   // рядок "Об'єкт пустий".
   // Якщо виникла помилка, повертаємо її повідомлення.
-  if (Object.keys(data).length === 0) {
-    const error = new Error("Об'єкт пустий");
-    throw error;
+  // if (Object.keys(data).length === 0) {
+  //   const error = new Error("Об'єкт пустий");
+  //   throw error;
+  // }
+  // return data;
+  try {
+    if (Object.keys(data).length) {
+      return data;
+    } else {
+      throw new Error("Empty object");
+    }
+  } catch (error) {
+    return error.message;
   }
-  return data;
 }
 
 console.log("Завдання: 1 ==============================");
@@ -38,10 +47,10 @@ function parseJson(jsonStr) {
   // Повертаємо отриманий об'єкт
   // Якщо виникла помилка, повертаємо її повідомлення.
   try {
-    const jsonParsed = JSON.parse(jsonStr);
+    let jsonParsed = JSON.parse(jsonStr);
     return jsonParsed;
   } catch (error) {
-    return `Unexpected token a in JSON at position`;
+    return error.message;
   }
 }
 console.log("Завдання: 2 ==============================");
@@ -109,12 +118,21 @@ function getBookById(books, id) {
   // Повертаємо book
   // Повертаємо текстове представлення помилки
 
-  for (const book of books) {
-    if (book.id === id) {
-      return book;
+  try {
+    //   for (const book of books) {
+    //   if (book.id === id) {
+    //     return book;
+    //   }
+    // }
+    // throw new TypeError(`Книга з ID ${id} не знайдена!`);}
+    let book = books.find((book) => book.id === id);
+    if (!book) {
+      throw new TypeError(`Книга з ID ${id} не знайдена!`);
     }
+    return `Book ${book.title}`;
+  } catch (error) {
+    return error.toString();
   }
-  throw new TypeError(`Книга з ID ${id} не знайдена!`);
 }
 console.log("Завдання: 4 ==============================");
 
@@ -161,9 +179,9 @@ function decodeURIComponentWrapper(encodedString) {
     return decodeString;
   } catch (error) {
     if (error.name === "URIError") {
-      return `Помилка декодування URI`;
+      return new URIError(`Помилка декодування URI`);
     } else {
-      return error.message;
+      return new Error(error.toString());
     }
   }
 }
@@ -231,16 +249,20 @@ function validateUser(user) {
   //повідомленням "Email користувача не вказано!", а як причину вказуємо об'єкт user.
   // Якщо всі перевірки пройдено успішно виводимо повідомлення "Об'єкт користувача відповідає всім вимогам."
   // Виводимо повідомлення про помилку та причину помилки.
-  if (!user) {
-    throw new Error(`Об'єкт користувача не вказано!`);
+  try {
+    if (!user) {
+      throw new Error(`Об'єкт користувача не вказано!`);
+    }
+    if (!user.name) {
+      throw new Error(`Ім'я користувача не вказано!`, { cause: user });
+    }
+    if (!user.email) {
+      throw new Error(`Email користувача не вказано!`, { cause: user });
+    }
+    console.log(`Об'єкт користувача відповідає всім вимогам.`);
+  } catch {
+    console.error(error.message, error.cause);
   }
-  if (!user.name) {
-    throw new Error(`Ім'я користувача не вказано!`, { cause: user });
-  }
-  if (!user.email) {
-    throw new Error(`Email користувача не вказано!`, { cause: user });
-  }
-  console.log(`Об'єкт користувача відповідає всім вимогам.`);
 }
 
 console.log("Завдання: 7 ==============================");
@@ -265,13 +287,17 @@ function calculateSquareRoot(number) {
   // діапазон з повідомленням Число не повинно бути від'ємним!".
   // Повертаємо корінь квадратний з вхідного значення
   // Повертаємо повідомлення про помилку.
-  if (typeof number !== "number") {
-    throw new TypeError(`Аргумент має бути числом!`);
+  try {
+    if (typeof number !== "number") {
+      throw new TypeError(`Аргумент має бути числом!`);
+    }
+    if (number < 0) {
+      throw new RangeError(`Число не повинно бути від'ємним!`);
+    }
+    return Math.sqrt(number);
+  } catch (error) {
+    return error.message;
   }
-  if (number < 0) {
-    throw new RangeError(`Число не повинно бути від'ємним!`);
-  }
-  return Math.sqrt(number);
 }
 
 console.log("Завдання: 8 ==============================");
@@ -298,15 +324,31 @@ function processData(data) {
   // Повертаємо рядок "Дані успішно оброблені"
   // Виводимо stack trace помилки
   // Повертаємо повідомлення помилки
-  for (let i = 0; i < data.length; i++) {
-    if (typeof data[i] !== "number") {
-      const error = new TypeError(`Елемент з індексом ${i} має бути числом!`);
-      console.log(error.stack, error.message);
-      throw error;
-    }
+  // for (let i = 0; i < data.length; i++) {
+  //   if (typeof data[i] !== "number") {
+  //     const error = new TypeError(`Елемент з індексом ${i} має бути числом!`);
+  //     console.log(error.stack, error.message);
+  //     throw error;
+  //   }
+  // }
+  // return "Дані успішно оброблені";
+  try {
+    // Для кожного елемента в масиві
+    data.forEach((item, index) => {
+      // Перевіряємо, чи елемент є числом
+      if (typeof item !== "number") {
+        // Якщо елемент не є числом, кидаємо помилку невірного типу даних з повідомленням `Елемент з індексом ${index} має бути числом!`
+        throw new TypeError(`Елемент з індексом ${index} має бути числом!`);
+      }
+    });
+    // Повертаємо рядок "Дані успішно оброблені"
+    return "Дані успішно оброблені";
+  } catch (error) {
+    // Виводимо stack trace помилки
+    console.error(error.stack);
+    // Повертаємо повідомлення помилки
+    return error.message;
   }
-
-  return "Дані успішно оброблені";
 }
 
 console.log("Завдання: 9 ==============================");
@@ -336,9 +378,7 @@ function evaluateExpression(expression) {
     const result = eval(expression);
     return result;
   } catch (error) {
-    if (error) {
-      console.error(`помилка`);
-    }
+    return new EvalError(error.message);
   }
 }
 
